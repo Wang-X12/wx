@@ -1,0 +1,1866 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>云果之约 - AI大数据智能决策系统</title>
+    <!-- 外部资源引入 -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- 自定义样式 -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+        }
+        .card {
+            background-color: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 1.25rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+            transition: all 0.3s ease;
+            overflow: hidden;
+        }
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.04);
+        }
+        .system-tab {
+            border-bottom: 2px solid transparent;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .system-tab.active {
+            border-bottom: 2px solid #10b981;
+            color: #10b981;
+            font-weight: 600;
+        }
+        .stat-card {
+            background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+            border-radius: 1rem;
+            padding: 1.25rem;
+            border: 1px solid #bbf7d0;
+        }
+        .btn-primary {
+            background-color: #10b981;
+            color: white;
+            border-radius: 0.75rem;
+            padding: 0.625rem 1.25rem;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+        }
+        .btn-primary:hover {
+            background-color: #059669;
+            transform: translateY(-2px);
+        }
+        .nav-item {
+            position: relative;
+            cursor: pointer;
+        }
+        .nav-item::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: -4px;
+            left: 0;
+            background-color: #10b981;
+            transition: width 0.3s ease;
+        }
+        .nav-item:hover::after {
+            width: 100%;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+        .line-clamp-2 {
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        .required::after {
+            content: '*';
+            color: #ef4444;
+            margin-left: 2px;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        /* 模态框动画 */
+        .modal-enter {
+            animation: modalFadeIn 0.3s ease;
+        }
+        @keyframes modalFadeIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+    </style>
+</head>
+<body class="text-gray-800">
+    <!-- 顶部导航栏 -->
+    <header class="bg-white shadow-sm sticky top-0 z-50">
+        <div class="container mx-auto px-4 py-4 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+                <i class="fa fa-tree text-2xl text-green-600"></i>
+                <h1 class="text-xl md:text-2xl font-bold text-gray-800">云果之约<span class="text-green-600">·智能决策系统</span></h1>
+            </div>
+            <nav class="hidden md:flex items-center gap-8">
+                <a href="#" class="nav-item text-gray-700 hover:text-green-600 transition-colors">首页</a>
+                <a href="#" class="nav-item text-gray-700 hover:text-green-600 transition-colors">数据中心</a>
+                <a href="#" class="nav-item text-gray-700 hover:text-green-600 transition-colors">服务管理</a>
+                <a href="#" class="nav-item text-gray-700 hover:text-green-600 transition-colors">系统设置</a>
+            </nav>
+            <div class="flex items-center gap-4">
+                <button class="btn-primary flex items-center gap-2" onclick="exportReport()">
+                    <i class="fa fa-download"></i>
+                    <span>导出报表</span>
+                </button>
+                <button class="md:hidden text-gray-700 text-xl" id="mobileMenuBtn" onclick="toggleMobileMenu()">
+                    <i class="fa fa-bars"></i>
+                </button>
+            </div>
+        </div>
+        <!-- 移动端菜单 -->
+        <div class="md:hidden hidden bg-white border-t border-gray-100" id="mobileMenu">
+            <nav class="flex flex-col p-4 gap-4">
+                <a href="#" class="text-gray-700 hover:text-green-600 transition-colors py-2">首页</a>
+                <a href="#" class="text-gray-700 hover:text-green-600 transition-colors py-2">数据中心</a>
+                <a href="#" class="text-gray-700 hover:text-green-600 transition-colors py-2">服务管理</a>
+                <a href="#" class="text-gray-700 hover:text-green-600 transition-colors py-2">系统设置</a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- 主内容区 -->
+    <main class="container mx-auto px-4 py-8">
+        <!-- 系统概览 -->
+        <section class="mb-10">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+                <div>
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-800">AI大数据智能决策平台</h2>
+                    <p class="text-gray-500 mt-1">四大核心子系统协同运作，赋能农业认养全流程</p>
+                </div>
+                <div class="flex items-center gap-3 bg-white px-4 py-2 rounded-full shadow-sm">
+                    <span class="text-sm text-gray-500">系统状态：</span>
+                    <span class="flex items-center gap-1 text-green-600">
+                        <i class="fa fa-circle text-xs"></i>
+                        <span>正常运行</span>
+                    </span>
+                </div>
+            </div>
+
+            <!-- 数据概览卡片 -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div class="stat-card">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="text-gray-600 text-sm">监测果园数量</p>
+                            <h3 class="text-3xl font-bold text-green-700 mt-1">28</h3>
+                            <p class="text-green-600 text-xs mt-2 flex items-center">
+                                <i class="fa fa-arrow-up mr-1"></i> 12% 较上月
+                            </p>
+                        </div>
+                        <div class="bg-green-100 p-3 rounded-full">
+                            <i class="fa fa-map-marker text-xl text-green-600"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="text-gray-600 text-sm">当前认养订单</p>
+                            <h3 class="text-3xl font-bold text-green-700 mt-1">1,563</h3>
+                            <p class="text-green-600 text-xs mt-2 flex items-center">
+                                <i class="fa fa-arrow-up mr-1"></i> 27% 较上月
+                            </p>
+                        </div>
+                        <div class="bg-green-100 p-3 rounded-full">
+                            <i class="fa fa-shopping-cart text-xl text-green-600"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="text-gray-600 text-sm">管护方案数量</p>
+                            <h3 class="text-3xl font-bold text-green-700 mt-1">42</h3>
+                            <p class="text-green-600 text-xs mt-2 flex items-center">
+                                <i class="fa fa-arrow-up mr-1"></i> 8% 较上月
+                            </p>
+                        </div>
+                        <div class="bg-green-100 p-3 rounded-full">
+                            <i class="fa fa-list-alt text-xl text-green-600"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="text-gray-600 text-sm">用户反馈处理率</p>
+                            <h3 class="text-3xl font-bold text-green-700 mt-1">96%</h3>
+                            <p class="text-green-600 text-xs mt-2 flex items-center">
+                                <i class="fa fa-arrow-up mr-1"></i> 3% 较上月
+                            </p>
+                        </div>
+                        <div class="bg-green-100 p-3 rounded-full">
+                            <i class="fa fa-comments text-xl text-green-600"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 系统标签页 -->
+        <section>
+            <div class="flex border-b border-gray-200 mb-6 overflow-x-auto pb-2">
+                <button class="system-tab active px-6 py-3 text-gray-700 whitespace-nowrap" data-tab="environment">
+                    果园环境数据管理系统
+                </button>
+                <button class="system-tab px-6 py-3 text-gray-700 whitespace-nowrap" data-tab="order">
+                    认养订单管理系统
+                </button>
+                <button class="system-tab px-6 py-3 text-gray-700 whitespace-nowrap" data-tab="management">
+                    果树管护服务管理系统
+                </button>
+                <button class="system-tab px-6 py-3 text-gray-700 whitespace-nowrap" data-tab="feedback">
+                    认养用户反馈管理系统
+                </button>
+            </div>
+
+            <!-- 1. 果园环境数据管理系统 -->
+            <div id="environment" class="tab-content active">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <!-- 左侧筛选区 -->
+                    <div class="card p-6 lg:col-span-1">
+                        <h3 class="text-lg font-semibold mb-4 flex items-center gap-2">
+                            <i class="fa fa-filter text-green-600"></i>
+                            筛选条件
+                        </h3>
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">选择果园</label>
+                                <select id="orchardSelect" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500">
+                                    <option value="">全部果园</option>
+                                    <option value="1">兰州西固区马饮沟生态园</option>
+                                    <option value="2">庆阳西峰区苹果基地</option>
+                                    <option value="3">天水秦安蜜桃基地</option>
+                                    <option value="4">武威凉州核桃园</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">监测指标</label>
+                                <div class="space-y-2">
+                                    <label class="flex items-center gap-2">
+                                        <input type="checkbox" checked class="rounded text-green-600 focus:ring-green-500" id="humidityCheck">
+                                        <span class="text-sm text-gray-700">土壤湿度</span>
+                                    </label>
+                                    <label class="flex items-center gap-2">
+                                        <input type="checkbox" checked class="rounded text-green-600 focus:ring-green-500" id="lightCheck">
+                                        <span class="text-sm text-gray-700">光照强度</span>
+                                    </label>
+                                    <label class="flex items-center gap-2">
+                                        <input type="checkbox" checked class="rounded text-green-600 focus:ring-green-500" id="tempCheck">
+                                        <span class="text-sm text-gray-700">环境温度</span>
+                                    </label>
+                                    <label class="flex items-center gap-2">
+                                        <input type="checkbox" checked class="rounded text-green-600 focus:ring-green-500" id="airHumidityCheck">
+                                        <span class="text-sm text-gray-700">空气湿度</span>
+                                    </label>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">时间范围</label>
+                                <select id="timeRangeSelect" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500">
+                                    <option value="today">今日</option>
+                                    <option value="7day">近7天</option>
+                                    <option value="30day" selected>近30天</option>
+                                    <option value="90day">近90天</option>
+                                    <option value="custom">自定义</option>
+                                </select>
+                            </div>
+                            <button class="btn-primary w-full" onclick="loadEnvData()">
+                                <i class="fa fa-search mr-1"></i> 查看数据
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 右侧数据展示区 -->
+                    <div class="lg:col-span-2 space-y-6">
+                        <!-- 数据趋势图 -->
+                        <div class="card p-6">
+                            <div class="flex justify-between items-center mb-6">
+                                <h3 class="text-lg font-semibold flex items-center gap-2">
+                                    <i class="fa fa-line-chart text-green-600"></i>
+                                    环境数据趋势分析
+                                </h3>
+                                <div class="flex gap-2">
+                                    <button class="px-3 py-1 text-sm bg-gray-100 rounded-md hover:bg-gray-200 transition-colors" onclick="exportChart('environmentChart')">
+                                        <i class="fa fa-download mr-1"></i> 导出
+                                    </button>
+                                    <button class="px-3 py-1 text-sm bg-gray-100 rounded-md hover:bg-gray-200 transition-colors" onclick="refreshEnvChart()">
+                                        <i class="fa fa-refresh mr-1"></i> 刷新
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="h-80">
+                                <canvas id="environmentChart"></canvas>
+                            </div>
+                        </div>
+
+                        <!-- 实时数据卡片 -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="card p-6">
+                                <div class="flex justify-between items-start mb-4">
+                                    <h4 class="font-medium text-gray-800">土壤湿度监测</h4>
+                                    <span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">正常</span>
+                                </div>
+                                <div class="flex items-center gap-4">
+                                    <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
+                                        <i class="fa fa-tint text-3xl text-green-600"></i>
+                                    </div>
+                                    <div class="flex-1">
+                                        <div class="flex justify-between items-end mb-1">
+                                            <span class="text-3xl font-bold text-gray-800" id="soilHumidityVal">42%</span>
+                                            <span class="text-sm text-green-600">+2% 较昨日</span>
+                                        </div>
+                                        <div class="w-full bg-gray-200 rounded-full h-2.5">
+                                            <div class="bg-green-500 h-2.5 rounded-full" id="soilHumidityBar" style="width: 42%"></div>
+                                        </div>
+                                        <p class="text-xs text-gray-500 mt-1">适宜范围：35%-55%</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card p-6">
+                                <div class="flex justify-between items-start mb-4">
+                                    <h4 class="font-medium text-gray-800">光照强度监测</h4>
+                                    <span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">正常</span>
+                                </div>
+                                <div class="flex items-center gap-4">
+                                    <div class="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center">
+                                        <i class="fa fa-sun-o text-3xl text-yellow-500"></i>
+                                    </div>
+                                    <div class="flex-1">
+                                        <div class="flex justify-between items-end mb-1">
+                                            <span class="text-3xl font-bold text-gray-800" id="lightIntensityVal">68000 lx</span>
+                                            <span class="text-sm text-green-600">+5% 较昨日</span>
+                                        </div>
+                                        <div class="w-full bg-gray-200 rounded-full h-2.5">
+                                            <div class="bg-yellow-500 h-2.5 rounded-full" id="lightIntensityBar" style="width: 68%"></div>
+                                        </div>
+                                        <p class="text-xs text-gray-500 mt-1">适宜范围：50000-80000 lx</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card p-6">
+                                <div class="flex justify-between items-start mb-4">
+                                    <h4 class="font-medium text-gray-800">环境温度监测</h4>
+                                    <span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">正常</span>
+                                </div>
+                                <div class="flex items-center gap-4">
+                                    <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center">
+                                        <i class="fa fa-thermometer-half text-3xl text-blue-600"></i>
+                                    </div>
+                                    <div class="flex-1">
+                                        <div class="flex justify-between items-end mb-1">
+                                            <span class="text-3xl font-bold text-gray-800" id="envTempVal">22℃</span>
+                                            <span class="text-sm text-green-600">+1℃ 较昨日</span>
+                                        </div>
+                                        <div class="w-full bg-gray-200 rounded-full h-2.5">
+                                            <div class="bg-blue-500 h-2.5 rounded-full" id="envTempBar" style="width: 65%"></div>
+                                        </div>
+                                        <p class="text-xs text-gray-500 mt-1">适宜范围：15-28℃</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card p-6">
+                                <div class="flex justify-between items-start mb-4">
+                                    <h4 class="font-medium text-gray-800">空气湿度监测</h4>
+                                    <span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">正常</span>
+                                </div>
+                                <div class="flex items-center gap-4">
+                                    <div class="w-16 h-16 bg-cyan-100 rounded-full flex items-center justify-center">
+                                        <i class="fa fa-cloud text-3xl text-cyan-600"></i>
+                                    </div>
+                                    <div class="flex-1">
+                                        <div class="flex justify-between items-end mb-1">
+                                            <span class="text-3xl font-bold text-gray-800" id="airHumidityVal">58%</span>
+                                            <span class="text-sm text-green-600">+3% 较昨日</span>
+                                        </div>
+                                        <div class="w-full bg-gray-200 rounded-full h-2.5">
+                                            <div class="bg-cyan-500 h-2.5 rounded-full" id="airHumidityBar" style="width: 58%"></div>
+                                        </div>
+                                        <p class="text-xs text-gray-500 mt-1">适宜范围：50%-70%</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. 认养订单管理系统 -->
+            <div id="order" class="tab-content">
+                <div class="card p-6 mb-6">
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+                        <h3 class="text-lg font-semibold flex items-center gap-2">
+                            <i class="fa fa-shopping-cart text-green-600"></i>
+                            认养订单管理
+                        </h3>
+                        <div class="flex flex-wrap gap-3">
+                            <div class="relative">
+                                <input type="text" id="orderSearch" placeholder="搜索订单号/用户名" class="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500">
+                                <i class="fa fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                            </div>
+                            <select id="orderStatusSelect" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500">
+                                <option value="">全部状态</option>
+                                <option value="pending">待付款</option>
+                                <option value="processing">认养中</option>
+                                <option value="harvest">待采摘</option>
+                                <option value="completed">已收获</option>
+                                <option value="cancelled">已取消</option>
+                            </select>
+                            <button class="btn-primary" onclick="searchOrders()">
+                                <i class="fa fa-filter mr-1"></i> 筛选
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 订单表格 -->
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead>
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">订单编号</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">用户信息</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">认养果树</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">订单状态</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">创建时间</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">操作</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-200" id="orderTableBody">
+                                <tr class="hover:bg-gray-50 transition-colors">
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">YGYD20240512001</td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="text-sm text-gray-900">张先生</div>
+                                        <div class="text-sm text-gray-500">138****5678</div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="text-sm text-gray-900">瑞雪苹果树 001</div>
+                                        <div class="text-sm text-gray-500">庆阳西峰区</div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                                            待采摘
+                                        </span>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">2024-05-12 10:23</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                                        <button class="text-green-600 hover:text-green-900 mr-3" onclick="viewOrder('YGYD20240512001')">查看</button>
+                                        <button class="text-blue-600 hover:text-blue-900 mr-3" onclick="editOrder('YGYD20240512001')">编辑</button>
+                                        <button class="text-red-600 hover:text-red-900" onclick="cancelOrder('YGYD20240512001')">取消</button>
+                                    </td>
+                                </tr>
+                                <tr class="hover:bg-gray-50 transition-colors">
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">YGYD20240510089</td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="text-sm text-gray-900">李女士</div>
+                                        <div class="text-sm text-gray-500">139****3456</div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="text-sm text-gray-900">红富士苹果树 001</div>
+                                        <div class="text-sm text-gray-500">庆阳西峰区</div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                            认养中
+                                        </span>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">2024-05-10 14:56</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                                        <button class="text-green-600 hover:text-green-900 mr-3" onclick="viewOrder('YGYD20240510089')">查看</button>
+                                        <button class="text-blue-600 hover:text-blue-900 mr-3" onclick="editOrder('YGYD20240510089')">编辑</button>
+                                        <button class="text-red-600 hover:text-red-900" onclick="cancelOrder('YGYD20240510089')">取消</button>
+                                    </td>
+                                </tr>
+                                <tr class="hover:bg-gray-50 transition-colors">
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">YGYD20240508056</td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="text-sm text-gray-900">王先生</div>
+                                        <div class="text-sm text-gray-500">136****7890</div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="text-sm text-gray-900">核桃树 001</div>
+                                        <div class="text-sm text-gray-500">兰州西固区</div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-indigo-100 text-indigo-800">
+                                            已收获
+                                        </span>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">2024-05-08 09:12</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                                        <button class="text-green-600 hover:text-green-900 mr-3" onclick="viewOrder('YGYD20240508056')">查看</button>
+                                        <button class="text-gray-400 cursor-not-allowed mr-3">编辑</button>
+                                        <button class="text-gray-400 cursor-not-allowed">取消</button>
+                                    </td>
+                                </tr>
+                                <tr class="hover:bg-gray-50 transition-colors">
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">YGYD20240505032</td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="text-sm text-gray-900">赵女士</div>
+                                        <div class="text-sm text-gray-500">137****2345</div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="text-sm text-gray-900">瑞雪苹果树 002</div>
+                                        <div class="text-sm text-gray-500">庆阳西峰区</div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
+                                            已取消
+                                        </span>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">2024-05-05 16:43</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                                        <button class="text-green-600 hover:text-green-900 mr-3" onclick="viewOrder('YGYD20240505032')">查看</button>
+                                        <button class="text-gray-400 cursor-not-allowed mr-3">编辑</button>
+                                        <button class="text-gray-400 cursor-not-allowed">取消</button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- 分页 -->
+                    <div class="flex justify-between items-center mt-6">
+                        <div class="text-sm text-gray-500">
+                            显示 1 至 4 条，共 1,563 条记录
+                        </div>
+                        <div class="flex gap-1">
+                            <button class="px-3 py-1 border border-gray-300 rounded-md text-gray-500 hover:bg-gray-50 disabled:opacity-50" disabled>
+                                <i class="fa fa-chevron-left"></i>
+                            </button>
+                            <button class="px-3 py-1 border border-green-500 bg-green-50 text-green-600 rounded-md font-medium">1</button>
+                            <button class="px-3 py-1 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">2</button>
+                            <button class="px-3 py-1 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">3</button>
+                            <button class="px-3 py-1 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">...</button>
+                            <button class="px-3 py-1 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">391</button>
+                            <button class="px-3 py-1 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">
+                                <i class="fa fa-chevron-right"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 用户偏好分析 -->
+                <div class="card p-6">
+                    <h3 class="text-lg font-semibold mb-6 flex items-center gap-2">
+                        <i class="fa fa-bar-chart text-green-600"></i>
+                        用户认养偏好分析
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div class="h-72">
+                            <canvas id="preferenceChart"></canvas>
+                        </div>
+                        <div class="h-72">
+                            <canvas id="regionChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. 果树管护服务管理系统 -->
+            <div id="management" class="tab-content">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <!-- 左侧管护方案列表 -->
+                    <div class="card p-6 lg:col-span-1">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-lg font-semibold flex items-center gap-2">
+                                <i class="fa fa-list-alt text-green-600"></i>
+                                管护方案库
+                            </h3>
+                            <button class="btn-primary text-sm px-3 py-1" onclick="showAddPlanModal()">
+                                <i class="fa fa-plus mr-1"></i> 新增方案
+                            </button>
+                        </div>
+                        <div class="space-y-3">
+                            <div class="p-3 border border-green-500 bg-green-50 rounded-lg cursor-pointer" onclick="showPlanDetail('苹果树春季管护方案')">
+                                <h4 class="font-medium text-gray-800">苹果树春季管护方案</h4>
+                                <p class="text-sm text-gray-600 mt-1">浇水/施肥/修剪综合方案</p>
+                                <div class="flex justify-between items-center mt-2">
+                                    <span class="text-xs text-green-600">适用阶段：生长期</span>
+                                    <span class="text-xs bg-green-100 text-green-800 px-2 py-0.5 rounded">已启用</span>
+                                </div>
+                            </div>
+                            <div class="p-3 border border-gray-200 rounded-lg hover:border-green-300 hover:bg-gray-50 cursor-pointer transition-colors" onclick="showPlanDetail('苹果树夏季管护方案')">
+                                <h4 class="font-medium text-gray-800">苹果树夏季管护方案</h4>
+                                <p class="text-sm text-gray-600 mt-1">浇水/遮阴/病虫害防治</p>
+                                <div class="flex justify-between items-center mt-2">
+                                    <span class="text-xs text-green-600">适用阶段：结果期</span>
+                                    <span class="text-xs bg-green-100 text-green-800 px-2 py-0.5 rounded">已启用</span>
+                                </div>
+                            </div>
+                            <div class="p-3 border border-gray-200 rounded-lg hover:border-green-300 hover:bg-gray-50 cursor-pointer transition-colors" onclick="showPlanDetail('苹果树秋季管护方案')">
+                                <h4 class="font-medium text-gray-800">苹果树秋季管护方案</h4>
+                                <p class="text-sm text-gray-600 mt-1">施肥/采摘准备/枝叶清理</p>
+                                <div class="flex justify-between items-center mt-2">
+                                    <span class="text-xs text-green-600">适用阶段：成熟期</span>
+                                    <span class="text-xs bg-green-100 text-green-800 px-2 py-0.5 rounded">已启用</span>
+                                </div>
+                            </div>
+                            <div class="p-3 border border-gray-200 rounded-lg hover:border-green-300 hover:bg-gray-50 cursor-pointer transition-colors" onclick="showPlanDetail('苹果树冬季管护方案')">
+                                <h4 class="font-medium text-gray-800">苹果树冬季管护方案</h4>
+                                <p class="text-sm text-gray-600 mt-1">修剪/防寒/基肥施用</p>
+                                <div class="flex justify-between items-center mt-2">
+                                    <span class="text-xs text-green-600">适用阶段：休眠期</span>
+                                    <span class="text-xs bg-green-100 text-green-800 px-2 py-0.5 rounded">已启用</span>
+                                </div>
+                            </div>
+                            <div class="p-3 border border-gray-200 rounded-lg hover:border-green-300 hover:bg-gray-50 cursor-pointer transition-colors" onclick="showPlanDetail('核桃树全年管护方案')">
+                                <h4 class="font-medium text-gray-800">核桃树全年管护方案</h4>
+                                <p class="text-sm text-gray-600 mt-1">全周期综合管护方案</p>
+                                <div class="flex justify-between items-center mt-2">
+                                    <span class="text-xs text-green-600">适用阶段：全周期</span>
+                                    <span class="text-xs bg-green-100 text-green-800 px-2 py-0.5 rounded">已启用</span>
+                                </div>
+                            </div>
+                            <button class="w-full py-2 text-center text-green-600 text-sm border border-green-200 rounded-lg hover:bg-green-50 transition-colors">
+                                查看更多方案 <i class="fa fa-angle-down ml-1"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 右侧方案详情 -->
+                    <div class="card p-6 lg:col-span-2" id="planDetailCard">
+                        <div class="flex justify-between items-start mb-6">
+                            <div>
+                                <h3 class="text-xl font-semibold text-gray-800" id="planTitle">苹果树春季管护方案</h3>
+                                <div class="flex items-center gap-3 mt-2">
+                                    <span class="text-sm text-gray-500 flex items-center">
+                                        <i class="fa fa-tag mr-1 text-green-500"></i> 苹果树
+                                    </span>
+                                    <span class="text-sm text-gray-500 flex items-center">
+                                        <i class="fa fa-calendar mr-1 text-green-500"></i> 3月-5月
+                                    </span>
+                                    <span class="text-sm text-gray-500 flex items-center">
+                                        <i class="fa fa-check-circle mr-1 text-green-500"></i> 适用阶段：生长期
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="flex gap-2">
+                                <button class="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50 transition-colors" onclick="editPlan()">
+                                    <i class="fa fa-edit mr-1"></i> 编辑
+                                </button>
+                                <button class="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50 transition-colors" onclick="deletePlan()">
+                                    <i class="fa fa-trash mr-1"></i> 删除
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- 方案内容 -->
+                        <div class="space-y-6">
+                            <div>
+                                <h4 class="font-medium text-gray-800 mb-3">一、浇水管理</h4>
+                                <div class="pl-4 border-l-2 border-green-200 space-y-2">
+                                    <p class="text-gray-700">1. 浇水频率：每7-10天浇水一次，根据土壤湿度数据调整</p>
+                                    <p class="text-gray-700">2. 浇水量：每棵树每次浇水20-30L，避免积水</p>
+                                    <p class="text-gray-700">3. 浇水时间：选择清晨或傍晚，避免正午高温浇水</p>
+                                    <div class="mt-3 p-3 bg-green-50 border border-green-100 rounded-lg">
+                                        <p class="text-sm text-green-800 flex items-start gap-2">
+                                            <i class="fa fa-lightbulb-o mt-0.5"></i>
+                                            <span>智能建议：当土壤湿度低于35%时自动提醒浇水，高于55%时暂停浇水</span>
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div>
+                                <h4 class="font-medium text-gray-800 mb-3">二、施肥管理</h4>
+                                <div class="pl-4 border-l-2 border-green-200 space-y-2">
+                                    <p class="text-gray-700">1. 施肥时间：3月中旬施萌芽肥，4月下旬施花后肥</p>
+                                    <p class="text-gray-700">2. 肥料选择：萌芽肥以氮肥为主，花后肥以氮磷钾复合肥为主</p>
+                                    <p class="text-gray-700">3. 施肥量：每棵树每次施肥0.5-1kg，均匀撒施后浇水</p>
+                                    <div class="mt-3 p-3 bg-green-50 border border-green-100 rounded-lg">
+                                        <p class="text-sm text-green-800 flex items-start gap-2">
+                                            <i class="fa fa-lightbulb-o mt-0.5"></i>
+                                            <span>智能建议：根据果树生长状态和土壤养分数据，自动调整施肥方案</span>
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div>
+                                <h4 class="font-medium text-gray-800 mb-3">三、修剪管理</h4>
+                                <div class="pl-4 border-l-2 border-green-200 space-y-2">
+                                    <p class="text-gray-700">1. 修剪时间：3月上旬萌芽前完成修剪</p>
+                                    <p class="text-gray-700">2. 修剪内容：疏除过密枝、病弱枝、交叉枝，保留健壮枝条</p>
+                                    <p class="text-gray-700">3. 修剪强度：轻剪为主，避免过度修剪影响生长</p>
+                                    <div class="mt-3 p-3 bg-green-50 border border-green-100 rounded-lg">
+                                        <p class="text-sm text-green-800 flex items-start gap-2">
+                                            <i class="fa fa-lightbulb-o mt-0.5"></i>
+                                            <span>智能建议：根据树龄、树势和生长数据，生成个性化修剪方案</span>
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div>
+                                <h4 class="font-medium text-gray-800 mb-3">四、病虫害防治</h4>
+                                <div class="pl-4 border-l-2 border-green-200 space-y-2">
+                                    <p class="text-gray-700">1. 预防为主：定期清理果园落叶、杂草，减少病虫害滋生</p>
+                                    <p class="text-gray-700">2. 药剂选择：优先使用生物农药，避免高毒农药</p>
+                                    <p class="text-gray-700">3. 防治时间：萌芽前喷石硫合剂，花前花后各喷一次杀菌剂</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 方案附件 -->
+                        <div class="mt-8 pt-6 border-t border-gray-200">
+                            <h4 class="font-medium text-gray-800 mb-3">相关附件</h4>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                <div class="flex items-center gap-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+                                    <i class="fa fa-file-pdf-o text-red-500 text-xl"></i>
+                                    <div class="flex-1">
+                                        <p class="text-gray-800 text-sm">苹果树春季管护技术规范.pdf</p>
+                                        <p class="text-gray-500 text-xs">2.4MB · 2024-03-01</p>
+                                    </div>
+                                    <button class="text-green-600 hover:text-green-800" onclick="downloadFile('苹果树春季管护技术规范.pdf')">
+                                        <i class="fa fa-download"></i>
+                                    </button>
+                                </div>
+                                <div class="flex items-center gap-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+                                    <i class="fa fa-file-image-o text-blue-500 text-xl"></i>
+                                    <div class="flex-1">
+                                        <p class="text-gray-800 text-sm">苹果树修剪示意图.png</p>
+                                        <p class="text-gray-500 text-xs">1.8MB · 2024-03-01</p>
+                                    </div>
+                                    <button class="text-green-600 hover:text-green-800" onclick="downloadFile('苹果树修剪示意图.png')">
+                                        <i class="fa fa-download"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 适用果园 -->
+                        <div class="mt-8 pt-6 border-t border-gray-200">
+                            <h4 class="font-medium text-gray-800 mb-3">适用果园</h4>
+                            <div class="flex flex-wrap gap-2">
+                                <span class="px-3 py-1 bg-gray-100 text-gray-700 text-sm rounded-full">兰州西固区马饮沟生态园</span>
+                                <span class="px-3 py-1 bg-gray-100 text-gray-700 text-sm rounded-full">庆阳西峰区苹果基地</span>
+                                <span class="px-3 py-1 bg-gray-100 text-gray-700 text-sm rounded-full">天水秦安苹果基地</span>
+                                <span class="px-3 py-1 bg-gray-100 text-gray-700 text-sm rounded-full">平凉静宁苹果基地</span>
+                                <button class="px-3 py-1 border border-dashed border-gray-300 text-gray-500 text-sm rounded-full hover:bg-gray-50 transition-colors">
+                                    <i class="fa fa-plus mr-1"></i> 添加
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 4. 认养用户反馈管理系统 -->
+            <div id="feedback" class="tab-content">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <!-- 左侧筛选和统计 -->
+                    <div class="card p-6 lg:col-span-1">
+                        <h3 class="text-lg font-semibold mb-4 flex items-center gap-2">
+                            <i class="fa fa-filter text-green-600"></i>
+                            筛选条件
+                        </h3>
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">反馈类型</label>
+                                <select id="feedbackTypeSelect" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500">
+                                    <option value="">全部类型</option>
+                                    <option value="data">数据准确性</option>
+                                    <option value="function">功能体验</option>
+                                    <option value="management">管护需求</option>
+                                    <option value="other">其他问题</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">处理状态</label>
+                                <select id="feedbackStatusSelect" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500">
+                                    <option value="">全部状态</option>
+                                    <option value="pending">待处理</option>
+                                    <option value="processing">处理中</option>
+                                    <option value="completed">已完成</option>
+                                    <option value="rejected">已驳回</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">时间范围</label>
+                                <select id="feedbackTimeSelect" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500">
+                                    <option value="7day">近7天</option>
+                                    <option value="30day" selected>近30天</option>
+                                    <option value="90day">近90天</option>
+                                    <option value="custom">自定义</option>
+                                </select>
+                            </div>
+                            <button class="btn-primary w-full" onclick="filterFeedback()">
+                                <i class="fa fa-search mr-1"></i> 筛选反馈
+                            </button>
+                        </div>
+
+                        <!-- 反馈统计 -->
+                        <div class="mt-8">
+                            <h3 class="text-lg font-semibold mb-4 flex items-center gap-2">
+                                <i class="fa fa-pie-chart text-green-600"></i>
+                                反馈统计
+                            </h3>
+                            <div class="h-64">
+                                <canvas id="feedbackChart"></canvas>
+                            </div>
+                            <div class="grid grid-cols-2 gap-3 mt-6">
+                                <div class="p-3 bg-gray-50 rounded-lg">
+                                    <p class="text-sm text-gray-500">总反馈数</p>
+                                    <p class="text-2xl font-bold text-gray-800 mt-1">328</p>
+                                </div>
+                                <div class="p-3 bg-green-50 rounded-lg">
+                                    <p class="text-sm text-gray-500">已处理数</p>
+                                    <p class="text-2xl font-bold text-green-700 mt-1">315</p>
+                                </div>
+                                <div class="p-3 bg-yellow-50 rounded-lg">
+                                    <p class="text-sm text-gray-500">处理中</p>
+                                    <p class="text-2xl font-bold text-yellow-700 mt-1">10</p>
+                                </div>
+                                <div class="p-3 bg-red-50 rounded-lg">
+                                    <p class="text-sm text-gray-500">待处理</p>
+                                    <p class="text-2xl font-bold text-red-700 mt-1">3</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 右侧反馈列表和详情 -->
+                    <div class="lg:col-span-2 space-y-6">
+                        <!-- 反馈列表 -->
+                        <div class="card p-6">
+                            <div class="flex justify-between items-center mb-4">
+                                <h3 class="text-lg font-semibold flex items-center gap-2">
+                                    <i class="fa fa-comments text-green-600"></i>
+                                    用户反馈列表
+                                </h3>
+                                <button class="text-sm text-green-600 hover:text-green-800">
+                                    查看全部 <i class="fa fa-angle-right ml-1"></i>
+                                </button>
+                            </div>
+                            <div class="space-y-4 max-h-96 overflow-y-auto pr-2" id="feedbackList">
+                                <div class="p-4 border border-gray-200 rounded-lg hover:border-green-300 hover:bg-gray-50 cursor-pointer transition-colors" onclick="showFeedbackDetail('土壤湿度数据更新不及时')">
+                                    <div class="flex justify-between items-start">
+                                        <div>
+                                            <h4 class="font-medium text-gray-800">土壤湿度数据更新不及时</h4>
+                                            <div class="flex items-center gap-3 mt-1">
+                                                <span class="text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full">数据准确性</span>
+                                                <span class="text-xs bg-green-100 text-green-800 px-2 py-0.5 rounded-full">已完成</span>
+                                                <span class="text-xs text-gray-500">2024-05-10 08:32</span>
+                                            </div>
+                                        </div>
+                                        <span class="text-xs text-gray-500">用户：张先生</span>
+                                    </div>
+                                    <p class="text-sm text-gray-600 mt-2 line-clamp-2">
+                                        最近发现土壤湿度数据有时候会延迟更新，希望能优化数据同步速度，这样才能及时掌握果树的水分情况。
+                                    </p>
+                                </div>
+                                <div class="p-4 border border-gray-200 rounded-lg hover:border-green-300 hover:bg-gray-50 cursor-pointer transition-colors" onclick="showFeedbackDetail('希望增加果树生长周期提醒功能')">
+                                    <div class="flex justify-between items-start">
+                                        <div>
+                                            <h4 class="font-medium text-gray-800">希望增加果树生长周期提醒功能</h4>
+                                            <div class="flex items-center gap-3 mt-1">
+                                                <span class="text-xs bg-purple-100 text-purple-800 px-2 py-0.5 rounded-full">功能体验</span>
+                                                <span class="text-xs bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded-full">处理中</span>
+                                                <span class="text-xs text-gray-500">2024-05-08 14:15</span>
+                                            </div>
+                                        </div>
+                                        <span class="text-xs text-gray-500">用户：李女士</span>
+                                    </div>
+                                    <p class="text-sm text-gray-600 mt-2 line-clamp-2">
+                                        作为认养用户，希望能在关键生长节点（比如开花、结果、成熟）收到提醒，方便安排时间参与管护或准备采摘。
+                                    </p>
+                                </div>
+                                <div class="p-4 border border-gray-200 rounded-lg hover:border-green-300 hover:bg-gray-50 cursor-pointer transition-colors" onclick="showFeedbackDetail('建议增加针对不同品种的专属管护方案')">
+                                    <div class="flex justify-between items-start">
+                                        <div>
+                                            <h4 class="font-medium text-gray-800">建议增加针对不同品种的专属管护方案</h4>
+                                            <div class="flex items-center gap-3 mt-1">
+                                                <span class="text-xs bg-orange-100 text-orange-800 px-2 py-0.5 rounded-full">管护需求</span>
+                                                <span class="text-xs bg-green-100 text-green-800 px-2 py-0.5 rounded-full">已完成</span>
+                                                <span class="text-xs text-gray-500">2024-05-05 16:43</span>
+                                            </div>
+                                        </div>
+                                        <span class="text-xs text-gray-500">用户：王先生</span>
+                                    </div>
+                                    <p class="text-sm text-gray-600 mt-2 line-clamp-2">
+                                        不同品种的果树管护需求不一样，希望能针对红富士、瑞雪等不同品种提供专属的管护方案和智能建议。
+                                    </p>
+                                </div>
+                                <div class="p-4 border border-gray-200 rounded-lg hover:border-green-300 hover:bg-gray-50 cursor-pointer transition-colors" onclick="showFeedbackDetail('直播画面卡顿严重')">
+                                    <div class="flex justify-between items-start">
+                                        <div>
+                                            <h4 class="font-medium text-gray-800">直播画面卡顿严重</h4>
+                                            <div class="flex items-center gap-3 mt-1">
+                                                <span class="text-xs bg-purple-100 text-purple-800 px-2 py-0.5 rounded-full">功能体验</span>
+                                                <span class="text-xs bg-red-100 text-red-800 px-2 py-0.5 rounded-full">待处理</span>
+                                                <span class="text-xs text-gray-500">2024-05-03 10:27</span>
+                                            </div>
+                                        </div>
+                                        <span class="text-xs text-gray-500">用户：赵女士</span>
+                                    </div>
+                                    <p class="text-sm text-gray-600 mt-2 line-clamp-2">
+                                        观看果园直播时经常卡顿，有时候还会黑屏，希望能优化直播流的稳定性，提升观看体验。
+                                    </p>
+                                </div>
+                                <div class="p-4 border border-gray-200 rounded-lg hover:border-green-300 hover:bg-gray-50 cursor-pointer transition-colors" onclick="showFeedbackDetail('希望增加果树生长对比功能')">
+                                    <div class="flex justify-between items-start">
+                                        <div>
+                                            <h4 class="font-medium text-gray-800">希望增加果树生长对比功能</h4>
+                                            <div class="flex items-center gap-3 mt-1">
+                                                <span class="text-xs bg-purple-100 text-purple-800 px-2 py-0.5 rounded-full">功能体验</span>
+                                                <span class="text-xs bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded-full">处理中</span>
+                                                <span class="text-xs text-gray-500">2024-05-01 15:48</span>
+                                            </div>
+                                        </div>
+                                        <span class="text-xs text-gray-500">用户：孙先生</span>
+                                    </div>
+                                    <p class="text-sm text-gray-600 mt-2 line-clamp-2">
+                                        想和其他认养用户的果树生长情况做对比，了解自己的果树生长是否正常，希望能增加这个对比功能。
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 反馈详情和处理 -->
+                        <div class="card p-6" id="feedbackDetailCard">
+                            <div class="flex justify-between items-start mb-4">
+                                <h3 class="text-lg font-semibold flex items-center gap-2">
+                                    <i class="fa fa-comment-o text-green-600"></i>
+                                    反馈详情与处理
+                                </h3>
+                                <span class="text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full">数据准确性</span>
+                            </div>
+                            <div class="space-y-6">
+                                <div>
+                                    <h4 class="font-medium text-gray-800 mb-2" id="feedbackTitle">土壤湿度数据更新不及时</h4>
+                                    <div class="p-4 bg-gray-50 rounded-lg">
+                                        <p class="text-gray-700">最近发现土壤湿度数据有时候会延迟更新，今天早上看还是昨天的数据，希望能优化数据同步速度，这样才能及时掌握果树的水分情况，做出正确的管护决策。</p>
+                                        <div class="flex justify-between items-center mt-4 text-sm text-gray-500">
+                                            <span>提交时间：2024-05-10 08:32</span>
+                                            <span>提交用户：张先生（138****5678）</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <h4 class="font-medium text-gray-800 mb-2">处理记录</h4>
+                                    <div class="space-y-4" id="feedbackProcessList">
+                                        <div class="flex gap-3">
+                                            <div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
+                                                <i class="fa fa-user text-green-600"></i>
+                                            </div>
+                                            <div class="flex-1">
+                                                <div class="flex justify-between items-center">
+                                                    <h5 class="font-medium text-gray-800">系统管理员</h5>
+                                                    <span class="text-xs text-gray-500">2024-05-10 09:15</span>
+                                                </div>
+                                                <div class="mt-1 p-3 bg-gray-50 rounded-lg">
+                                                    <p class="text-gray-700 text-sm">已收到反馈，正在核查数据同步问题。经初步排查，可能是部分传感器网络延迟导致，我们会尽快优化数据传输机制。</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="flex gap-3">
+                                            <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
+                                                <i class="fa fa-wrench text-blue-600"></i>
+                                            </div>
+                                            <div class="flex-1">
+                                                <div class="flex justify-between items-center">
+                                                    <h5 class="font-medium text-gray-800">技术工程师</h5>
+                                                    <span class="text-xs text-gray-500">2024-05-10 14:30</span>
+                                                </div>
+                                                <div class="mt-1 p-3 bg-gray-50 rounded-lg">
+                                                    <p class="text-gray-700 text-sm">已完成系统优化，调整了数据同步频率和重试机制，现在数据更新延迟已控制在5分钟内。后续会持续监控数据传输状态，确保数据准确性和及时性。</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="flex gap-3">
+                                            <div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
+                                                <i class="fa fa-user text-green-600"></i>
+                                            </div>
+                                            <div class="flex-1">
+                                                <div class="flex justify-between items-center">
+                                                    <h5 class="font-medium text-gray-800">系统管理员</h5>
+                                                    <span class="text-xs text-gray-500">2024-05-10 15:00</span>
+                                                </div>
+                                                <div class="mt-1 p-3 bg-gray-50 rounded-lg">
+                                                    <p class="text-gray-700 text-sm">已通过系统消息告知用户问题已解决，感谢用户的反馈和支持。</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="pt-4 border-t border-gray-200">
+                                    <h4 class="font-medium text-gray-800 mb-3">添加处理记录</h4>
+                                    <textarea id="processContent" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 resize-none h-32" placeholder="请输入处理内容..."></textarea>
+                                    <div class="flex justify-end gap-3 mt-4">
+                                        <button class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">
+                                            保存草稿
+                                        </button>
+                                        <button class="btn-primary" onclick="addProcessRecord()">
+                                            提交处理
+                                        </button>
+                                    </div>
+                                 </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- 新增管护方案模态框 -->
+    <div id="addPlanModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden modal-enter">
+        <div class="bg-white rounded-xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-xl font-semibold text-gray-800">新增果树管护方案</h3>
+                <button class="text-gray-400 hover:text-gray-600 text-xl" onclick="hideAddPlanModal()">
+                    <i class="fa fa-times"></i>
+                </button>
+            </div>
+
+            <form id="addPlanForm" class="space-y-6">
+                <!-- 基础信息 -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1 required">方案名称</label>
+                        <input type="text" name="planName" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500" placeholder="例如：苹果树春季管护方案" required>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1 required">适用果树品种</label>
+                        <select name="fruitType" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500" required>
+                            <option value="">请选择果树品种</option>
+                            <option value="apple">苹果树</option>
+                            <option value="pear">梨树</option>
+                            <option value="peach">桃树</option>
+                            <option value="walnut">核桃树</option>
+                            <option value="grape">葡萄树</option>
+                            <option value="other">其他品种</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1 required">适用阶段</label>
+                        <select name="growthStage" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500" required>
+                            <option value="">请选择生长阶段</option>
+                            <option value="germination">萌芽期</option>
+                            <option value="growth">生长期</option>
+                            <option value="flowering">花期</option>
+                            <option value="fruiting">结果期</option>
+                            <option value="maturity">成熟期</option>
+                            <option value="dormancy">休眠期</option>
+                            <option value="all">全周期</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1 required">适用时间</label>
+                        <input type="text" name="applyTime" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500" placeholder="例如：3月-5月 / 全年" required>
+                    </div>
+                </div>
+
+                <!-- 核心管护内容 -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-3 required">管护内容</label>
+                    
+                    <!-- 浇水管理 -->
+                    <div class="mb-6 p-4 border border-gray-200 rounded-lg">
+                        <div class="flex items-center gap-2 mb-3">
+                            <i class="fa fa-tint text-blue-500"></i>
+                            <h4 class="font-medium text-gray-800">浇水管理</h4>
+                        </div>
+                        <div class="space-y-3 pl-6">
+                            <div>
+                                <label class="block text-xs text-gray-600 mb-1">浇水频率</label>
+                                <input type="text" name="waterFrequency" class="w-full px-3 py-1.5 border border-gray-300 rounded-md text-sm" placeholder="例如：每7-10天浇水一次">
+                            </div>
+                            <div>
+                                <label class="block text-xs text-gray-600 mb-1">浇水量</label>
+                                <input type="text" name="waterAmount" class="w-full px-3 py-1.5 border border-gray-300 rounded-md text-sm" placeholder="例如：每棵树每次浇水20-30L">
+                            </div>
+                            <div>
+                                <label class="block text-xs text-gray-600 mb-1">浇水时间</label>
+                                <input type="text" name="waterTime" class="w-full px-3 py-1.5 border border-gray-300 rounded-md text-sm" placeholder="例如：清晨或傍晚，避免正午高温">
+                            </div>
+                            <div>
+                                <label class="block text-xs text-gray-600 mb-1">智能建议（可选）</label>
+                                <textarea name="waterSuggestion" rows="2" class="w-full px-3 py-1.5 border border-gray-300 rounded-md text-sm" placeholder="基于传感器数据的智能提醒或调整建议"></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 施肥管理 -->
+                    <div class="mb-6 p-4 border border-gray-200 rounded-lg">
+                        <div class="flex items-center gap-2 mb-3">
+                            <i class="fa fa-leaf text-green-500"></i>
+                            <h4 class="font-medium text-gray-800">施肥管理</h4>
+                        </div>
+                        <div class="space-y-3 pl-6">
+                            <div>
+                                <label class="block text-xs text-gray-600 mb-1">施肥时间</label>
+                                <input type="text" name="fertilizerTime" class="w-full px-3 py-1.5 border border-gray-300 rounded-md text-sm" placeholder="例如：3月中旬施萌芽肥，4月下旬施花后肥">
+                            </div>
+                            <div>
+                                <label class="block text-xs text-gray-600 mb-1">肥料选择</label>
+                                <input type="text" name="fertilizerType" class="w-full px-3 py-1.5 border border-gray-300 rounded-md text-sm" placeholder="例如：萌芽肥以氮肥为主，花后肥以氮磷钾复合肥为主">
+                            </div>
+                            <div>
+                                <label class="block text-xs text-gray-600 mb-1">施肥量</label>
+                                <input type="text" name="fertilizerAmount" class="w-full px-3 py-1.5 border border-gray-300 rounded-md text-sm" placeholder="例如：每棵树每次施肥0.5-1kg">
+                            </div>
+                            <div>
+                                <label class="block text-xs text-gray-600 mb-1">智能建议（可选）</label>
+                                <textarea name="fertilizerSuggestion" rows="2" class="w-full px-3 py-1.5 border border-gray-300 rounded-md text-sm" placeholder="基于土壤养分数据的智能调整建议"></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 其他管护项（可动态添加） -->
+                    <div class="mb-4">
+                        <button type="button" class="flex items-center gap-1 text-green-600 text-sm hover:text-green-800" onclick="addOtherManagementItem()">
+                            <i class="fa fa-plus-circle"></i> 添加其他管护项（修剪/病虫害防治等）
+                        </button>
+                    </div>
+                    <div id="otherManagementContainer" class="space-y-4">
+                        <!-- 动态添加的管护项会在这里显示 -->
+                    </div>
+                </div>
+
+                <!-- 适用果园 -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">适用果园（可多选）</label>
+                    <div class="flex flex-wrap gap-2">
+                        <label class="flex items-center gap-2 px-3 py-1.5 border border-gray-200 rounded-full cursor-pointer hover:bg-gray-50">
+                            <input type="checkbox" name="applyOrchard" value="1" class="text-green-600 focus:ring-green-500">
+                            <span class="text-sm">兰州西固区马饮沟生态园</span>
+                        </label>
+                        <label class="flex items-center gap-2 px-3 py-1.5 border border-gray-200 rounded-full cursor-pointer hover:bg-gray-50">
+                            <input type="checkbox" name="applyOrchard" value="2" class="text-green-600 focus:ring-green-500">
+                            <span class="text-sm">庆阳西峰区苹果基地</span>
+                        </label>
+                        <label class="flex items-center gap-2 px-3 py-1.5 border border-gray-200 rounded-full cursor-pointer hover:bg-gray-50">
+                            <input type="checkbox" name="applyOrchard" value="3" class="text-green-600 focus:ring-green-500">
+                            <span class="text-sm">天水秦安蜜桃基地</span>
+                        </label>
+                        <label class="flex items-center gap-2 px-3 py-1.5 border border-gray-200 rounded-full cursor-pointer hover:bg-gray-50">
+                            <input type="checkbox" name="applyOrchard" value="4" class="text-green-600 focus:ring-green-500">
+                            <span class="text-sm">武威凉州核桃园</span>
+                        </label>
+                        <label class="flex items-center gap-2 px-3 py-1.5 border border-gray-200 rounded-full cursor-pointer hover:bg-gray-50">
+                            <input type="checkbox" name="applyOrchard" value="5" class="text-green-600 focus:ring-green-500">
+                            <span class="text-sm">平凉静宁苹果基地</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- 方案附件（可选） -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">相关附件（可选）</label>
+                    <div class="flex items-center gap-3 p-3 border-2 border-dashed border-gray-300 rounded-lg hover:border-green-400 transition-colors">
+                        <i class="fa fa-cloud-upload text-2xl text-gray-400"></i>
+                        <div class="flex-1">
+                            <p class="text-sm text-gray-600">拖拽文件至此处上传，或</p>
+                            <button type="button" class="text-green-600 text-sm hover:text-green-800 mt-1" id="attachBtn">点击选择文件</button>
+                        </div>
+                        <input type="file" multiple class="hidden" id="attachmentUpload">
+                    </div>
+                    <p class="text-xs text-gray-500 mt-1">支持PDF、图片、Word等格式，单个文件不超过10MB</p>
+                </div>
+
+                <!-- 提交按钮 -->
+                <div class="flex justify-end gap-3 pt-4 border-t border-gray-200">
+                    <button type="button" class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors" onclick="hideAddPlanModal()">
+                        取消
+                    </button>
+                    <button type="submit" class="btn-primary">
+                        <i class="fa fa-save mr-1"></i> 保存方案
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 页脚 -->
+    <footer class="bg-gray-900 text-white py-12 mt-16">
+        <div class="container mx-auto px-4">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <div>
+                    <div class="flex items-center gap-2 mb-4">
+                        <i class="fa fa-tree text-2xl text-green-400"></i>
+                        <h3 class="text-xl font-bold">云果之约</h3>
+                    </div>
+                    <p class="text-gray-400 text-sm mb-4">AI大数据驱动的智慧农业认养平台，连接消费者与果园，实现透明化、智能化管护。</p>
+                    <div class="flex gap-4">
+                        <a href="#" class="text-gray-400 hover:text-green-400 transition-colors">
+                            <i class="fa fa-weixin text-xl"></i>
+                        </a>
+                        <a href="#" class="text-gray-400 hover:text-green-400 transition-colors">
+                            <i class="fa fa-weibo text-xl"></i>
+                        </a>
+                        <a href="#" class="text-gray-400 hover:text-green-400 transition-colors">
+                            <i class="fa fa-qq text-xl"></i>
+                        </a>
+                    </div>
+                </div>
+                <div>
+                    <h4 class="text-lg font-semibold mb-4">快速链接</h4>
+                    <ul class="space-y-2 text-gray-400">
+                        <li><a href="#" class="hover:text-green-400 transition-colors">关于我们</a></li>
+                        <li><a href="#" class="hover:text-green-400 transition-colors">果园基地</a></li>
+                        <li><a href="#" class="hover:text-green-400 transition-colors">认养流程</a></li>
+                        <li><a href="#" class="hover:text-green-400 transition-colors">常见问题</a></li>
+                        <li><a href="#" class="hover:text-green-400 transition-colors">联系我们</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="text-lg font-semibold mb-4">联系我们</h4>
+                    <ul class="space-y-2 text-gray-400">
+                        <li class="flex items-start gap-2">
+                            <i class="fa fa-map-marker mt-1"></i>
+                            <span>甘肃省兰州市城关区高新技术产业开发区</span>
+                        </li>
+                        <li class="flex items-center gap-2">
+                            <i class="fa fa-phone"></i>
+                            <span>400-123-4567</span>
+                        </li>
+                        <li class="flex items-center gap-2">
+                            <i class="fa fa-envelope"></i>
+                            <span>contact@yunguozhiyue.com</span>
+                        </li>
+                        <li class="flex items-center gap-2">
+                            <i class="fa fa-clock-o"></i>
+                            <span>周一至周日 9:00-18:00</span>
+                        </li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="text-lg font-semibold mb-4">订阅资讯</h4>
+                    <p class="text-gray-400 text-sm mb-3">订阅我们的 newsletter，获取最新的果园动态和认养优惠</p>
+                    <div class="flex">
+                        <input type="email" placeholder="您的邮箱地址" class="px-4 py-2 rounded-l-lg w-full text-gray-800 focus:outline-none">
+                        <button class="btn-primary rounded-l-none">
+                            <i class="fa fa-paper-plane"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="border-t border-gray-800 mt-10 pt-6 flex flex-col md:flex-row justify-between items-center">
+                <p class="text-gray-500 text-sm mb-4 md:mb-0">© 2025 云果之约 版权所有 | 陇ICP备12345678号</p>
+                <div class="flex gap-6 text-sm text-gray-500">
+                    <a href="#" class="hover:text-gray-300 transition-colors">隐私政策</a>
+                    <a href="#" class="hover:text-gray-300 transition-colors">服务条款</a>
+                    <a href="#" class="hover:text-gray-300 transition-colors">网站地图</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- 核心JS逻辑 -->
+    <script>
+        // 全局变量
+        let environmentChart, preferenceChart, regionChart, feedbackChart;
+        let managementItemIndex = 1;
+
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            // 初始化标签页切换
+            initTabs();
+            // 初始化图表
+            initCharts();
+            // 绑定模态框相关事件
+            bindModalEvents();
+        });
+
+        // 1. 标签页切换逻辑
+        function initTabs() {
+            const tabs = document.querySelectorAll('.system-tab');
+            tabs.forEach(tab => {
+                tab.addEventListener('click', function() {
+                    // 移除所有标签页的active类
+                    tabs.forEach(t => t.classList.remove('active'));
+                    // 给当前点击的标签页添加active类
+                    this.classList.add('active');
+                    
+                    // 隐藏所有内容区域
+                    const tabContents = document.querySelectorAll('.tab-content');
+                    tabContents.forEach(content => content.classList.remove('active'));
+                    
+                    // 显示对应的内容区域
+                    const tabId = this.getAttribute('data-tab');
+                    document.getElementById(tabId).classList.add('active');
+                });
+            });
+        }
+
+        // 2. 图表初始化
+        function initCharts() {
+            // 环境数据趋势图
+            const envCtx = document.getElementById('environmentChart').getContext('2d');
+            environmentChart = new Chart(envCtx, {
+                type: 'line',
+                data: {
+                    labels: ['1日', '5日', '10日', '15日', '20日', '25日', '30日'],
+                    datasets: [
+                        {
+                            label: '土壤湿度(%)',
+                            data: [38, 42, 39, 45, 43, 41, 42],
+                            borderColor: '#10b981',
+                            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                            tension: 0.4,
+                            fill: true
+                        },
+                        {
+                            label: '光照强度(万lx)',
+                            data: [6.2, 6.5, 7.1, 6.8, 7.3, 6.9, 6.8],
+                            borderColor: '#f59e0b',
+                            backgroundColor: 'rgba(245, 158, 11, 0.1)',
+                            tension: 0.4,
+                            fill: true
+                        },
+                        {
+                            label: '环境温度(℃)',
+                            data: [18, 20, 22, 24, 23, 21, 22],
+                            borderColor: '#3b82f6',
+                            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                            tension: 0.4,
+                            fill: true
+                        },
+                        {
+                            label: '空气湿度(%)',
+                            data: [52, 55, 53, 58, 56, 54, 58],
+                            borderColor: '#06b6d4',
+                            backgroundColor: 'rgba(6, 182, 212, 0.1)',
+                            tension: 0.4,
+                            fill: true
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                usePointStyle: true,
+                                boxWidth: 6
+                            }
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false,
+                            backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                            titleColor: '#1f2937',
+                            bodyColor: '#4b5563',
+                            borderColor: '#e5e7eb',
+                            borderWidth: 1,
+                            padding: 12,
+                            boxPadding: 6,
+                            usePointStyle: true,
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    if (context.parsed.y !== null) {
+                                        label += context.parsed.y;
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        },
+                        y: {
+                            grid: {
+                                color: 'rgba(229, 231, 235, 0.5)'
+                            }
+                        }
+                    },
+                    interaction: {
+                        mode: 'nearest',
+                        axis: 'x',
+                        intersect: false
+                    },
+                    animations: {
+                        tension: {
+                            duration: 1000,
+                            easing: 'linear'
+                        }
+                    }
+                }
+            });
+
+            // 用户认养偏好图表
+            const prefCtx = document.getElementById('preferenceChart').getContext('2d');
+            preferenceChart = new Chart(prefCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['苹果树', '梨树', '桃树', '核桃树', '葡萄树', '其他'],
+                    datasets: [{
+                        label: '认养数量',
+                        data: [682, 256, 198, 215, 132, 80],
+                        backgroundColor: [
+                            'rgba(16, 185, 129, 0.7)',
+                            'rgba(59, 130, 246, 0.7)',
+                            'rgba(249, 115, 22, 0.7)',
+                            'rgba(139, 92, 246, 0.7)',
+                            'rgba(239, 68, 68, 0.7)',
+                            'rgba(107, 114, 128, 0.7)'
+                        ],
+                        borderColor: [
+                            'rgba(16, 185, 129, 1)',
+                            'rgba(59, 130, 246, 1)',
+                            'rgba(249, 115, 22, 1)',
+                            'rgba(139, 92, 246, 1)',
+                            'rgba(239, 68, 68, 1)',
+                            'rgba(107, 114, 128, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                            titleColor: '#1f2937',
+                            bodyColor: '#4b5563',
+                            borderColor: '#e5e7eb',
+                            borderWidth: 1
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(229, 231, 235, 0.5)'
+                            }
+                        }
+                    }
+                }
+            });
+
+            // 地区分布图表
+            const regionCtx = document.getElementById('regionChart').getContext('2d');
+            regionChart = new Chart(regionCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['兰州', '庆阳', '天水', '武威', '平凉', '其他'],
+                    datasets: [{
+                        data: [32, 25, 18, 12, 8, 5],
+                        backgroundColor: [
+                            'rgba(16, 185, 129, 0.8)',
+                            'rgba(59, 130, 246, 0.8)',
+                            'rgba(249, 115, 22, 0.8)',
+                            'rgba(139, 92, 246, 0.8)',
+                            'rgba(239, 68, 68, 0.8)',
+                            'rgba(107, 114, 128, 0.8)'
+                        ],
+                        borderColor: '#ffffff',
+                        borderWidth: 3
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                            labels: {
+                                usePointStyle: true,
+                                boxWidth: 6,
+                                padding: 15
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                            titleColor: '#1f2937',
+                            bodyColor: '#4b5563',
+                            borderColor: '#e5e7eb',
+                            borderWidth: 1,
+                            callbacks: {
+                                label: function(context) {
+                                    return context.label + ': ' + context.raw + '%';
+                                }
+                            }
+                        }
+                    },
+                    cutout: '60%',
+                    animations: {
+                        animateScale: true,
+                        animateRotate: true
+                    }
+                }
+            });
+
+            // 反馈统计图表
+            const feedbackCtx = document.getElementById('feedbackChart').getContext('2d');
+            feedbackChart = new Chart(feedbackCtx, {
+                type: 'pie',
+                data: {
+                    labels: ['数据准确性', '功能体验', '管护需求', '其他问题'],
+                    datasets: [{
+                        data: [86, 124, 78, 40],
+                        backgroundColor: [
+                            'rgba(16, 185, 129, 0.8)',
+                            'rgba(59, 130, 246, 0.8)',
+                            'rgba(249, 115, 22, 0.8)',
+                            'rgba(107, 114, 128, 0.8)'
+                        ],
+                        borderColor: '#ffffff',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                usePointStyle: true,
+                                boxWidth: 6,
+                                padding: 15
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                            titleColor: '#1f2937',
+                            bodyColor: '#4b5563',
+                            borderColor: '#e5e7eb',
+                            borderWidth: 1,
+                            callbacks: {
+                                label: function(context) {
+                                    return context.label + ': ' + context.raw + '条';
+                                }
+                            }
+                        }
+                    },
+                    animations: {
+                        animateScale: true
+                    }
+                }
+            });
+        }
+
+        // 3. 模态框相关逻辑
+        function bindModalEvents() {
+            // 附件上传触发
+            document.getElementById('attachBtn').addEventListener('click', function() {
+                document.getElementById('attachmentUpload').click();
+            });
+
+            // 拖拽上传逻辑
+            const dropArea = document.querySelector('.border-dashed');
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                dropArea.addEventListener(eventName, preventDefaults, false);
+            });
+
+            function preventDefaults(e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+
+            ['dragenter', 'dragover'].forEach(eventName => {
+                dropArea.addEventListener(eventName, highlight, false);
+            });
+
+            ['dragleave', 'drop'].forEach(eventName => {
+                dropArea.addEventListener(eventName, unhighlight, false);
+            });
+
+            function highlight() {
+                dropArea.classList.add('border-green-500');
+                dropArea.classList.add('bg-green-50');
+            }
+
+            function unhighlight() {
+                dropArea.classList.remove('border-green-500');
+                dropArea.classList.remove('bg-green-50');
+            }
+
+            dropArea.addEventListener('drop', handleDrop, false);
+            function handleDrop(e) {
+                const dt = e.dataTransfer;
+                const files = dt.files;
+                console.log('上传的文件：', files);
+                alert(`成功选择 ${files.length} 个文件，后续可进行上传处理`);
+            }
+
+            // 表单提交处理
+            document.getElementById('addPlanForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                // 这里可以添加表单验证和数据提交逻辑
+                const planName = this.querySelector('input[name="planName"]').value;
+                alert(`"${planName}" 管护方案新增成功！`);
+                hideAddPlanModal();
+                // 模拟刷新方案列表
+                setTimeout(() => {
+                    location.reload();
+                }, 500);
+            });
+        }
+
+        // 显示新增管护方案模态框
+        function showAddPlanModal() {
+            document.getElementById('addPlanModal').classList.remove('hidden');
+            // 禁止页面滚动
+            document.body.style.overflow = 'hidden';
+        }
+
+        // 隐藏新增管护方案模态框
+        function hideAddPlanModal() {
+            document.getElementById('addPlanModal').classList.add('hidden');
+            // 恢复页面滚动
+            document.body.style.overflow = '';
+            // 重置表单
+            document.getElementById('addPlanForm').reset();
+            // 清空动态添加的管护项
+            document.getElementById('otherManagementContainer').innerHTML = '';
+            managementItemIndex = 1;
+        }
+
+        // 动态添加其他管护项
+        function addOtherManagementItem() {
+            const container = document.getElementById('otherManagementContainer');
+            const item = document.createElement('div');
+            item.className = 'p-4 border border-gray-200 rounded-lg';
+            item.innerHTML = `
+                <div class="flex justify-between items-center mb-3">
+                    <div class="flex items-center gap-2">
+                        <i class="fa fa-cog text-gray-500"></i>
+                        <input type="text" name="otherManagementTitle_${managementItemIndex}" placeholder="管护项名称（例如：修剪管理/病虫害防治）" class="px-3 py-1.5 border border-gray-300 rounded-md text-sm w-48" required>
+                    </div>
+                    <button type="button" class="text-red-500 hover:text-red-700" onclick="removeManagementItem(this)">
+                        <i class="fa fa-times"></i>
+                    </button>
+                </div>
+                <div class="space-y-3 pl-6">
+                    <div>
+                        <label class="block text-xs text-gray-600 mb-1">具体内容</label>
+                        <textarea name="otherManagementContent_${managementItemIndex}" rows="3" class="w-full px-3 py-1.5 border border-gray-300 rounded-md text-sm" placeholder="请详细描述管护要求、操作规范等" required></textarea>
+                    </div>
+                    <div>
+                        <label class="block text-xs text-gray-600 mb-1">智能建议（可选）</label>
+                        <textarea name="otherManagementSuggestion_${managementItemIndex}" rows="2" class="w-full px-3 py-1.5 border border-gray-300 rounded-md text-sm" placeholder="基于数据的智能提醒或调整建议"></textarea>
+                    </div>
+                </div>
+            `;
+            container.appendChild(item);
+            managementItemIndex++;
+        }
+
+        // 移除动态添加的管护项
+        function removeManagementItem(btn) {
+            const item = btn.closest('.p-4.border');
+            item.remove();
+        }
+
+        // 4. 环境数据相关功能
+        function loadEnvData() {
+            // 模拟加载数据
+            const orchard = document.getElementById('orchardSelect').value;
+            const timeRange = document.getElementById('timeRangeSelect').value;
+            
+            // 模拟数据更新
+            const newData = {
+                soilHumidity: Math.floor(Math.random() * 20) + 35,
+                lightIntensity: Math.floor(Math.random() * 15000) + 60000,
+                envTemp: Math.floor(Math.random() * 8) + 18,
+                airHumidity: Math.floor(Math.random() * 15) + 50
+            };
+
+            // 更新实时数据卡片
+            document.getElementById('soilHumidityVal').textContent = newData.soilHumidity + '%';
+            document.getElementById('soilHumidityBar').style.width = newData.soilHumidity + '%';
+            
+            document.getElementById('lightIntensityVal').textContent = (newData.lightIntensity / 10000).toFixed(1) + '万lx';
+            document.getElementById('lightIntensityBar').style.width = ((newData.lightIntensity - 50000) / 30000 * 100) + '%';
+            
+            document.getElementById('envTempVal').textContent = newData.envTemp + '℃';
+            document.getElementById('envTempBar').style.width = ((newData.envTemp - 15) / 13 * 100) + '%';
+            
+            document.getElementById('airHumidityVal').textContent = newData.airHumidity + '%';
+            document.getElementById('airHumidityBar').style.width = newData.airHumidity + '%';
+
+            // 更新图表数据
+            const labels = timeRange === 'today' ? ['0时', '3时', '6时', '9时', '12时', '15时', '18时', '21时'] :
+                          timeRange === '7day' ? ['1日', '2日', '3日', '4日', '5日', '6日', '7日'] :
+                          ['1日', '5日', '10日', '15日', '20日', '25日', '30日'];
+            
+            environmentChart.data.labels = labels;
+            environmentChart.data.datasets[0].data = labels.map(() => Math.floor(Math.random() * 20) + 35);
+            environmentChart.data.datasets[1].data = labels.map(() => (Math.floor(Math.random() * 15) + 60) / 10);
+            environmentChart.data.datasets[2].data = labels.map(() => Math.floor(Math.random() * 8) + 18);
+            environmentChart.data.datasets[3].data = labels.map(() => Math.floor(Math.random() * 15) + 50);
+            
+            environmentChart.update();
+
+            alert(`已加载${orchard ? '【' + document.getElementById('orchardSelect').options[document.getElementById('orchardSelect').selectedIndex].text + '】' : '所有果园'}${timeRange === 'today' ? '今日' : timeRange === '7day' ? '近7天' : timeRange === '30day' ? '近30天' : '近90天'}的环境数据`);
+        }
+
+        function refreshEnvChart() {
+            // 刷新环境数据图表
+            environmentChart.data.datasets.forEach(dataset => {
+                dataset.data = dataset.data.map(value => {
+                    // 随机波动5%以内
+                    return Math.round((value * (0.95 + Math.random() * 0.1)) * 10) / 10;
+                });
+            });
+            environmentChart.update();
+            alert('图表已刷新');
+        }
+
+        function exportChart(chartId) {
+            // 模拟图表导出
+            alert(`图表导出成功！已保存为${chartId}.png`);
+        }
+
+        // 5. 订单管理相关功能
+        function searchOrders() {
+            const searchKey = document.getElementById('orderSearch').value;
+            const status = document.getElementById('orderStatusSelect').value;
+            alert(`已筛选${status ? '状态为【' + document.getElementById('orderStatusSelect').options[document.getElementById('orderStatusSelect').selectedIndex].text + '】' : ''}${searchKey ? '且包含关键词【' + searchKey + '】' : ''}的订单`);
+        }
+
+        function viewOrder(orderNo) {
+            alert(`查看订单 ${orderNo} 的详细信息`);
+        }
+
+        function editOrder(orderNo) {
+            alert(`编辑订单 ${orderNo}`);
+        }
+
+        function cancelOrder(orderNo) {
+            if (confirm(`确定要取消订单 ${orderNo} 吗？`)) {
+                alert(`订单 ${orderNo} 已取消`);
+            }
+        }
+
+        // 6. 管护方案相关功能
+        function showPlanDetail(planName) {
+            document.getElementById('planTitle').textContent = planName;
+            // 模拟加载方案详情（实际项目中可通过AJAX请求后端数据）
+            alert(`加载 ${planName} 的详细内容`);
+        }
+
+        function editPlan() {
+            const planName = document.getElementById('planTitle').textContent;
+            alert(`编辑 ${planName}`);
+            // 可跳转到编辑页面或打开编辑模态框
+        }
+
+        function deletePlan() {
+            const planName = document.getElementById('planTitle').textContent;
+            if (confirm(`确定要删除 ${planName} 吗？删除后不可恢复！`)) {
+                alert(`${planName} 已删除`);
+                // 模拟刷新方案列表
+                setTimeout(() => {
+                    location.reload();
+                }, 500);
+            }
+        }
+
+        function downloadFile(fileName) {
+            alert(`文件 ${fileName} 下载中...`);
+        }
+
+        // 7. 反馈管理相关功能
+        function filterFeedback() {
+            const type = document.getElementById('feedbackTypeSelect').value;
+            const status = document.getElementById('feedbackStatusSelect').value;
+            const timeRange = document.getElementById('feedbackTimeSelect').value;
+            alert(`已筛选${type ? '类型为【' + document.getElementById('feedbackTypeSelect').options[document.getElementById('feedbackTypeSelect').selectedIndex].text + '】' : ''}${status ? '、状态为【' + document.getElementById('feedbackStatusSelect').options[document.getElementById('feedbackStatusSelect').selectedIndex].text + '】' : ''}${timeRange === '7day' ? '、近7天' : timeRange === '30day' ? '、近30天' : '、近90天'}的反馈`);
+        }
+
+        function showFeedbackDetail(title) {
+            document.getElementById('feedbackTitle').textContent = title;
+            // 模拟加载反馈详情
+            alert(`加载反馈【${title}】的详细内容`);
+        }
+
+        function addProcessRecord() {
+            const content = document.getElementById('processContent').value;
+            if (!content.trim()) {
+                alert('请输入处理内容');
+                return;
+            }
+
+            const processList = document.getElementById('feedbackProcessList');
+            const now = new Date();
+            const timeStr = now.getFullYear() + '-' + 
+                           (now.getMonth() + 1).toString().padStart(2, '0') + '-' + 
+                           now.getDate().toString().padStart(2, '0') + ' ' + 
+                           now.getHours().toString().padStart(2, '0') + ':' + 
+                           now.getMinutes().toString().padStart(2, '0');
+
+            const record = document.createElement('div');
+            record.className = 'flex gap-3 mt-4';
+            record.innerHTML = `
+                <div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
+                    <i class="fa fa-user text-green-600"></i>
+                </div>
+                <div class="flex-1">
+                    <div class="flex justify-between items-center">
+                        <h5 class="font-medium text-gray-800">当前登录管理员</h5>
+                        <span class="text-xs text-gray-500">${timeStr}</span>
+                    </div>
+                    <div class="mt-1 p-3 bg-gray-50 rounded-lg">
+                        <p class="text-gray-700 text-sm">${content}</p>
+                    </div>
+                </div>
+            `;
+
+            processList.appendChild(record);
+            document.getElementById('processContent').value = '';
+            alert('处理记录添加成功');
+        }
+
+        // 8. 全局功能
+        function exportReport() {
+            alert('报表导出中...已生成Excel格式报表');
+        }
+
+        // 移动端菜单切换
+        function toggleMobileMenu() {
+            const mobileMenu = document.getElementById('mobileMenu');
+            mobileMenu.classList.toggle('hidden');
+        }
+    </script>
+</body>
+</html>
